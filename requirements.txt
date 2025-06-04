@@ -1,3 +1,4 @@
 praw
 nltk
 scikit-learn
+dotenv

@@ -1,9 +1,12 @@
-import RedditFetcher
+import ReviewFetcher
 
 def main():
-    rapi = RedditFetcher.RedditFetcher()
-    for comment in rapi.fetchComments('"Sony WH-1000XM4" review'):
-        print(comment + '\n')
+    fetcher = ReviewFetcher.ReviewFetcher()
+
+    reviews = fetcher.fetchReviews('sony xm4')
+
+    for review in reviews:
+        print(review)
 
 if __name__ == '__main__':
     main()

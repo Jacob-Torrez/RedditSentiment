@@ -18,6 +18,9 @@ class ReviewFetcher:
     def fetchReviews(self, product_name : str) -> list[str]:
         urls = self.fetchPosts(product_name)
 
+        for url in urls:
+            print(url)
+
         if urls:
             return self.fetchComments(urls)
         else:
@@ -31,7 +34,7 @@ class ReviewFetcher:
             # Parameters for GET request
             payload = {
                 'engine': 'google',
-                'q': f'site:www.reddit.com review {product_name}',
+                'q': f'site:www.reddit.com "your experience" OR "worth it" OR "thoughts?" OR "would you" {product_name}',
                 'hl': 'en',
                 'gl': 'us',
                 'api_key': self.serpapi_key
@@ -46,9 +49,21 @@ class ReviewFetcher:
             # Parses json response into dictionary
             api_data = response.json()
 
+            wanted_keywords = {"feedback", "experience", "thoughts", "worth", "opinion", "owners", "review"}
+            unwanted_keywords = {"vs", "comparison", "my"}
+
             # Looks at top 4 results from search and adds url to urls list
-            for result in api_data['organic_results'][:4]:
-                urls.append(result['link'])
+            count = 0
+            for result in api_data['organic_results']:
+                if (count >= 3):
+                    break
+
+                title = result['title'].lower()
+                title_words = set(title.split())
+
+                if (title_words & wanted_keywords and not title_words & set(unwanted_keywords)):
+                    urls.append(result['link'])
+                    count += 1
 
             return urls
         
@@ -62,10 +77,18 @@ class ReviewFetcher:
         for url in urls:
             submission = self.reddit.submission(url=url) # Finds submission by url
             submission.comment_sort = 'top' # Sort comments by top
-            submission.comments.replace_more(threshold=3, limit=3)
-            submission_comments = submission.comments.list()[:3] # Gets top 3 comments from submission
+            submission.comments.replace_more(limit=0)
 
-            for comment in submission_comments[:3]: # Adds the comments to comments list
-                comments.append(comment.body)
+            count = 0
+            for comment in submission.comments.list(): # Adds the comments to comments list
+                if (count >= 3):
+                    break
+                if (
+                    comment.author
+                    and comment.body.lower().strip() != '[removed]'
+                    and comment.author.name.lower() != 'automoderator'
+                ):
+                    comments.append(comment.body)
+                    count += 1
 
         return comments

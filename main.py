@@ -1,12 +1,17 @@
+import SentimentModel
 import ReviewFetcher
 
 def main():
-    fetcher = ReviewFetcher.ReviewFetcher()
+    model = SentimentModel.SentimentModel()
+    fetch = ReviewFetcher.ReviewFetcher()
 
-    reviews = fetcher.fetchReviews('sony xm4')
+    model.loadModel()
+    reviews = fetch.fetchReviews('INSERT PRODUCT HERE')
+    ratings = model.predictSentiment(reviews)
 
-    for review in reviews:
-        print(review)
+    print(f'average: {sum(ratings) / len(ratings)}')
+
+
 
 if __name__ == '__main__':
     main()

@@ -3,3 +3,5 @@ nltk
 scikit-learn
 dotenv
 requests
+datasets
+joblib
